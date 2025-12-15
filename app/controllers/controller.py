@@ -25,7 +25,6 @@ def handle_upload(file):
         else:
             return {"error": "Invalid file format"}
 
-        # 🔥 VERY IMPORTANT: Replace NaN for JSON safety
         df = df.replace({np.nan: None})
 
         global_data.data = df
