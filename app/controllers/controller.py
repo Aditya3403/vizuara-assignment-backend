@@ -17,19 +17,31 @@ def auto_convert_target(y):
 
 
 def handle_upload(file):
-    if file.filename.endswith(".csv"):
-        global_data.data = pd.read_csv(file.file)
-    elif file.filename.endswith(".xlsx"):
-        global_data.data = pd.read_excel(file.file)
-    else:
-        return {"error": "Invalid file format"}
+    try:
+        if file.filename.endswith(".csv"):
+            df = pd.read_csv(file.file)
+        elif file.filename.endswith(".xlsx"):
+            df = pd.read_excel(file.file)
+        else:
+            return {"error": "Invalid file format"}
 
-    return {
-        "rows": global_data.data.shape[0],
-        "columns": global_data.data.shape[1],
-        "column_names": global_data.data.columns.tolist(),
-        "preview": global_data.data.head(5).to_dict(orient="records")
-    }
+        # 🔥 VERY IMPORTANT: Replace NaN for JSON safety
+        df = df.replace({np.nan: None})
+
+        global_data.data = df
+
+        return {
+            "rows": df.shape[0],
+            "columns": df.shape[1],
+            "column_names": df.columns.tolist(),
+            "preview": df.head(5).to_dict(orient="records")
+        }
+
+    except Exception as e:
+        return {
+            "error": "Failed to read file. Please upload a clean CSV/XLSX."
+        }
+
 
 def handle_preprocess(standardize, normalize):
     data = global_data.data
