@@ -48,16 +48,29 @@ def handle_preprocess(standardize, normalize):
     X = data.iloc[:, :-1]
     y = data.iloc[:, -1]
 
+    X_numeric = X.select_dtypes(include=["number"])
+
+    if X_numeric.shape[1] == 0:
+        return {
+            "error": "No numeric columns available for preprocessing."
+        }
+
     if standardize:
-        X = StandardScaler().fit_transform(X)
+        X_numeric = StandardScaler().fit_transform(X_numeric)
 
     if normalize:
-        X = MinMaxScaler().fit_transform(X)
+        X_numeric = MinMaxScaler().fit_transform(X_numeric)
 
-    global_data.data = pd.DataFrame(X)
+    X_processed = pd.DataFrame(X_numeric, columns=X.select_dtypes(include=["number"]).columns)
+
+    global_data.data = X_processed
     global_data.data["target"] = y
 
-    return {"status": "Preprocessing applied successfully"}
+    return {
+        "status": "Preprocessing applied successfully",
+        "numeric_features_used": X_processed.columns.tolist()
+    }
+
 
 def handle_split(split_ratio):
     X = global_data.data.iloc[:, :-1]
